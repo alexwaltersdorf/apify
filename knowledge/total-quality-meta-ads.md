@@ -32,8 +32,34 @@ A cadeia site → GTM → Meta Pixel está **completa e correta**:
   mas polui e deve sair do tema.
 - **Zero eventos de pixel na conta NÃO significa pixel quebrado**: as campanhas mandam tráfego para
   o WhatsApp, não para o site, logo não há evento de site atribuível aos anúncios.
-- **Pendência**: confirmar no Business Manager que o pixel `1868545660691533` está vinculado/
-  compartilhado com a conta `427203942321758`. Só depois é possível criar público de site e lookalike.
+- **VERIFICADO em 2026-08-12 (Claude no Chrome, navegador autenticado):** o pixel
+  `1868545660691533` ("Pixel Google - Meta", proprietário Total Quality 886296055385342) **já estava
+  vinculado** à conta `427203942321758` — é a única conta com acesso. Tem API de Conversões
+  (web-only) ativa e recebe eventos: em 05–11/ago foram PageView 278, section_view 108, scroll 78,
+  time_on_page 64, nav_click 53, ViewContent 22, select_content 4. **Nenhum Lead.**
+- O `fbq('init','1536672876562340')` foi removido do servidor (Hostinger, hPanel → Gerenciador de
+  Arquivos, `/.builds/current/nodejs/dist/public/index.html` + 3 cópias-fonte). **Removido apenas no
+  servidor** — o site tem deploy automático do repo GitHub `total-quality` (branch `main`), então
+  o bloco volta no próximo deploy até ser removido de `client/index.html` no repositório.
+
+## BUG ABERTO — evento Lead não chega no clique de WhatsApp
+
+Sintoma: o dataLayer recebe `whatsapp_click`, mas nenhuma requisição `ev=Lead` sai para o pixel.
+Eventos sem navegação (ex.: `scroll`) saem normalmente.
+
+Diagnóstico do contêiner GTM-WLR7JD57 (análise estática do gtm.js):
+- Tag[2] = Meta Pixel (template tmSimo), `pixelId` = macro[13] = `1868545660691533`,
+  `vtp_eventName: "variable"` com tabela de mapeamento que inclui `whatsapp_click → Lead`.
+- Regra `[["if",3],["unless",2],["add",1,2]]`: predicado 3 = `{{Event}}` casa `.+`;
+  predicado 2 = `{{Event}}` contém `"gtm."`. Ou seja, **qualquer evento do dataLayer que não comece
+  com `gtm.` dispara a tag do pixel** — `whatsapp_click` está incluído.
+- **Conclusão: o acionador NÃO está errado.** A tag deveria disparar. O que falha é o tempo: o clique
+  navega para `api.whatsapp.com` e cancela a requisição do pixel antes de ela sair. Por isso `scroll`
+  (sem navegação) funciona e `whatsapp_click` não.
+
+Correção (no código do site, repo `total-quality`): abrir o link do WhatsApp em nova aba
+(`target="_blank" rel="noopener"`) ou adiar a navegação via `eventCallback`/~300 ms após o push.
+Não é necessário editar nem republicar o contêiner GTM.
 
 ## Benchmarks da conta
 
