@@ -7,6 +7,8 @@ Instruções de sistema para um assistente de IA especialista em gestão municip
 | `system-prompt-completo.md` | ~53 mil caracteres | Plataformas sem limite apertado de instruções (Claude Projects, API, agentes próprios) |
 | `system-prompt-compacto.md` | ~6,7 mil caracteres | Plataformas com limite de ~8 mil caracteres (ex.: GPTs personalizados). Anexe a versão completa como arquivo de conhecimento. |
 
+O mesmo conteúdo também existe como skill em `.claude/skills/gestao-sus-municipal/`. Ela é carregada automaticamente pelo Claude Code neste repositório e pode ser empacotada como `.skill` para instalar na conta do claude.ai.
+
 ## Como usar
 1. Cole o conteúdo do arquivo escolhido como *system prompt* ou instruções do projeto.
 2. Na versão completa, preencha os campos `{{...}}` da seção 2 (município, população, TCE, prazos da Lei Orgânica). Se deixar em branco, o assistente pergunta quando precisar.
